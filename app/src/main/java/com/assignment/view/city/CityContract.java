@@ -1,4 +1,4 @@
-package com.assignment.view.City;
+package com.assignment.view.city;
 
 import com.assignment.repository.model.City;
 import com.assignment.view.BasePresenter;

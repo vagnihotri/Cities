@@ -1,4 +1,4 @@
-package com.assignment.view.City;
+package com.assignment.view.city;
 
 import com.assignment.repository.AppRepository;
 import com.assignment.repository.model.City;
@@ -7,9 +7,8 @@ import com.assignment.repository.network.AppNetworkService;
 import java.util.List;
 
 import rx.Observer;
+import rx.Scheduler;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 /**
  * Created by agni on 24/01/18.
@@ -17,14 +16,18 @@ import rx.schedulers.Schedulers;
 
 public class CityPresenter implements CityContract.Presenter {
 
-    private static final String TAG = CityPresenter.class.getSimpleName();
     private Subscription subscription;
     private AppRepository appRepository;
     private CityContract.View view;
+    private Scheduler processScheduler, androidScheduler;
 
-    public CityPresenter(AppRepository appRepository, CityContract.View view){
+    public CityPresenter(AppRepository appRepository, CityContract.View view,
+                         Scheduler processScheduler, Scheduler androidScheduler){
         this.appRepository = appRepository;
         this.view = view;
+        //testing
+        this.processScheduler = processScheduler;
+        this.androidScheduler = androidScheduler;
         view.setPresenter(this);
     }
 
@@ -42,8 +45,8 @@ public class CityPresenter implements CityContract.Presenter {
     @Override
     public void loadCities() {
         subscription = appRepository.getCities(0,0)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.newThread())
+                .observeOn(androidScheduler)
+                .subscribeOn(processScheduler)
                 .subscribe(new Observer<List<City>>() {
                     @Override
                     public void onCompleted() {
@@ -64,8 +67,9 @@ public class CityPresenter implements CityContract.Presenter {
 
     @Override
     public void loadCitiesFromNetwork(int limit, int offset) {
-        new AppNetworkService().getCities(limit, offset).observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.newThread())
+        new AppNetworkService().getCities(limit, offset)
+                .observeOn(androidScheduler)
+                .subscribeOn(processScheduler)
                 .subscribe(new Observer<List<City>>() {
                     @Override
                     public void onCompleted() {

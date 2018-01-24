@@ -1,7 +1,7 @@
 package com.assignment.dagger;
 
 import com.assignment.repository.network.AppNetworkService;
-import com.assignment.view.City.CityActivity;
+import com.assignment.view.city.CityActivity;
 
 import javax.inject.Singleton;
 

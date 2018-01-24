@@ -1,4 +1,4 @@
-package com.assignment.view.City;
+package com.assignment.view.city;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
@@ -7,22 +7,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.Toast;
 
 import com.assignment.MainApplication;
 import com.assignment.R;
 import com.assignment.repository.AppRepository;
 import com.assignment.repository.model.City;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by agni on 24/01/18.
@@ -56,7 +52,8 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
         divider = new DividerItemDecoration(recyclerView.getContext(),
                 layoutManager.getOrientation());
 
-        new CityPresenter(repository, this);
+        new CityPresenter(repository, this,
+                Schedulers.newThread(), AndroidSchedulers.mainThread());
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.assignment.view.City;
+package com.assignment.view.city;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
