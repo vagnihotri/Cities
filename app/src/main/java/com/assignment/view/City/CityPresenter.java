@@ -80,7 +80,7 @@ public class CityPresenter implements CityContract.Presenter {
 
                     @Override
                     public void onNext(List<City> posts) {
-
+                        view.showComplete();
                     }
                 });
     }

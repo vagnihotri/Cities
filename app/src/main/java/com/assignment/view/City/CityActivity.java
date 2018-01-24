@@ -1,8 +1,12 @@
 package com.assignment.view.City;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -27,16 +31,16 @@ import javax.inject.Inject;
 public class CityActivity extends AppCompatActivity implements CityContract.View, SwipeRefreshLayout.OnRefreshListener {
 
     private CityContract.Presenter presenter;
-    private ListView listView;
+    private RecyclerView recyclerView;
+    private CityAdapter cityAdapter;
     private ArrayList<String> list;
-    private ArrayAdapter<String> adapter;
+    private LinearLayoutManager layoutManager;
     private static int RESULT_LIMIT = 10;
-    private boolean userScrolled = false;
+    private DividerItemDecoration divider;
+    private ProgressDialog progressDialog;
 
     @Inject
     AppRepository repository;
-
-    SwipeRefreshLayout swipeContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,71 +49,67 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
         //Inject dependency
         MainApplication.getAppComponent().inject(this);
 
-        listView = (ListView) findViewById(R.id.list_cities);
-        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-        swipeContainer.setOnRefreshListener(this);
+        recyclerView = findViewById(R.id.recycler_cities);
         list = new ArrayList<>();
+        layoutManager = new LinearLayoutManager(CityActivity.this);
+        recyclerView.setLayoutManager(layoutManager);
+        divider = new DividerItemDecoration(recyclerView.getContext(),
+                layoutManager.getOrientation());
 
         new CityPresenter(repository, this);
     }
 
     @Override
     public void showCities(final List<City> cities) {
+        stopLoading();
         list.clear();
         for (int i = 0; i < cities.size(); i++) {
             list.add(cities.get(i).getName());
         }
-        //Create the array adapter and set it to list view
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
-        listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        cityAdapter = new CityAdapter(this, list);
+        recyclerView.removeItemDecoration(divider);
+        recyclerView.addItemDecoration(divider);
+        recyclerView.setAdapter(cityAdapter);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener()
+        {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String text = "Selection is - " + cities.get(i).getName();
-                Toast.makeText(CityActivity.this, text, Toast.LENGTH_LONG).show();
-            }
-        });
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy)
+            {
+                int totalItemCount = layoutManager.getItemCount();
+                int visibleItemCount = layoutManager.getChildCount();
+                int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
 
-        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(AbsListView absListView, int scrollState) {
-                if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
-                    userScrolled = true;
-                }
-            }
-
-            @Override
-            public void onScroll(AbsListView view, int firstVisibleItem,
-                                 int visibleItemCount, int totalItemCount) {
-                if (userScrolled
-                        && firstVisibleItem + visibleItemCount == totalItemCount) {
-                    userScrolled = false;
-                    presenter.loadCitiesFromNetwork(RESULT_LIMIT, adapter.getCount());
+                if (dy > 0 && (visibleItemCount + firstVisibleItem) >= totalItemCount)
+                {
+                    showLoading();
+                    presenter.loadCitiesFromNetwork(RESULT_LIMIT, cityAdapter.getItemCount());
                 }
             }
         });
+    }
+
+    private void showLoading() {
+        if(progressDialog == null) {
+            progressDialog = new ProgressDialog(this);
+            progressDialog.setMessage("Loading");
+        }
+        progressDialog.show();
+    }
+
+    private void stopLoading() {
+        if(progressDialog != null) {
+            progressDialog.dismiss();
+        }
     }
 
     @Override
     public void showError(String message) {
-        if (swipeContainer != null)
-            swipeContainer.post(new Runnable() {
-                @Override
-                public void run() {
-                    swipeContainer.setRefreshing(false);
-                }
-            });
+        stopLoading();
     }
 
     @Override
     public void showComplete() {
-        if (swipeContainer != null)
-            swipeContainer.post(new Runnable() {
-                @Override
-                public void run() {
-                    swipeContainer.setRefreshing(false);
-                }
-            });
+        stopLoading();
     }
 
     @Override
@@ -131,6 +131,7 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
 
     @Override
     public void onRefresh() {
+        showLoading();
         presenter.loadCitiesFromNetwork(0,0);
     }
 }

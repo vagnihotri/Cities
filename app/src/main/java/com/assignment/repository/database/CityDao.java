@@ -56,14 +56,4 @@ public class CityDao implements AppDataStore {
                 .prepare()
                 .executeAsBlocking();
     }
-
-    public void deleteCitiesFromDatabase() {
-        storIOContentResolver
-                .delete()
-                .byQuery(DeleteQuery.builder()
-                        .uri(Contract.City.CONTENT_URI)
-                        .build())
-                .prepare()
-                .executeAsBlocking();
-    }
 }
