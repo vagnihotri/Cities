@@ -27,13 +27,15 @@ public class AppRepository implements AppDataStore {
     }
 
     @Override
-    public Observable<List<City>> getCities() {
-        return cityDao.getCities().flatMap(new Func1<List<City>, Observable<List<City>>>() {
+    public Observable<List<City>> getCities(final int limit, final int offset) {
+        return cityDao.getCities(limit, offset).flatMap(new Func1<List<City>, Observable<List<City>>>() {
             @Override
             public Observable<List<City>> call(List<City> cities) {
-                if(cities != null)
+                if(cities != null && !cities.isEmpty()) {
                     return Observable.just(cities);
-                else return appNetworkService.getCities();
+                } else {
+                    return appNetworkService.getCities(limit, offset);
+                }
             }
         });
     }

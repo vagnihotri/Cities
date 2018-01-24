@@ -11,5 +11,5 @@ import rx.Observable;
  */
 
 public interface AppDataStore {
-    Observable<List<City>> getCities();
+    Observable<List<City>> getCities(int limit, int offset);
 }

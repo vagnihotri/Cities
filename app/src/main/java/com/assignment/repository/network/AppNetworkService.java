@@ -1,7 +1,5 @@
 package com.assignment.repository.network;
 
-import android.util.Log;
-
 import com.assignment.MainApplication;
 import com.assignment.repository.AppDataStore;
 import com.assignment.repository.database.CityDao;
@@ -14,8 +12,8 @@ import javax.inject.Inject;
 
 import retrofit2.Retrofit;
 import retrofit2.http.GET;
+import retrofit2.http.Query;
 import rx.Observable;
-import rx.functions.Action1;
 import rx.functions.Func1;
 
 /**
@@ -35,27 +33,20 @@ public class AppNetworkService implements AppDataStore {
 
 
     @Override
-    public Observable<List<City>> getCities() {
-        Log.d("REMOTE","Loaded from remote");
-
+    public Observable<List<City>> getCities(int limit, int offset) {
         return retrofit.create(CityService.class)
-                .getCities()
+                .getCities(limit, offset)
                 .flatMap(new Func1<Payload, Observable<List<City>>>() {
                     @Override
                     public Observable<List<City>> call(Payload payload) {
-                        return Observable.just(payload.objects);
-                    }
-                })
-                .doOnNext(new Action1<List<City>>() {
-                    @Override
-                    public void call(List<City> cities) {
-                        cityDao.saveCitiesToDatabase(cities);
+                        cityDao.saveCitiesToDatabase(payload.objects);
+                        return cityDao.getCities(0, 0);
                     }
                 });
     }
 
     private interface CityService {
         @GET("city")
-        Observable<Payload> getCities();
+        Observable<Payload> getCities(@Query("limit") int limit, @Query("offset") int offset);
     }
 }

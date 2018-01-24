@@ -22,6 +22,6 @@ public class CityContract {
 
     interface Presenter extends BasePresenter {
         void loadCities();
-        void loadCitiesFromNetwork();
+        void loadCitiesFromNetwork(int limit, int offset);
     }
 }

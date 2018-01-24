@@ -2,7 +2,6 @@ package com.assignment.repository.database;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.assignment.repository.AppDataStore;
 import com.assignment.repository.model.City;
@@ -12,6 +11,7 @@ import com.assignment.repository.model.CityStorIOContentResolverPutResolver;
 import com.pushtorefresh.storio.contentresolver.ContentResolverTypeMapping;
 import com.pushtorefresh.storio.contentresolver.StorIOContentResolver;
 import com.pushtorefresh.storio.contentresolver.impl.DefaultStorIOContentResolver;
+import com.pushtorefresh.storio.contentresolver.queries.DeleteQuery;
 import com.pushtorefresh.storio.contentresolver.queries.Query;
 
 import java.util.List;
@@ -42,8 +42,7 @@ public class CityDao implements AppDataStore {
 
 
     @Override
-    public Observable<List<City>> getCities() {
-        Log.d("LOCAL","Loaded from local");
+    public Observable<List<City>> getCities(int limit, int offset) {
         return storIOContentResolver.get()
                 .listOfObjects(City.class)
                 .withQuery(Query.builder().uri(Contract.City.CONTENT_URI).build())
@@ -54,6 +53,16 @@ public class CityDao implements AppDataStore {
     public void saveCitiesToDatabase(List<City> cities) {
         storIOContentResolver.put()
                 .objects(cities)
+                .prepare()
+                .executeAsBlocking();
+    }
+
+    public void deleteCitiesFromDatabase() {
+        storIOContentResolver
+                .delete()
+                .byQuery(DeleteQuery.builder()
+                        .uri(Contract.City.CONTENT_URI)
+                        .build())
                 .prepare()
                 .executeAsBlocking();
     }

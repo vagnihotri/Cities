@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -29,6 +30,8 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
     private ListView listView;
     private ArrayList<String> list;
     private ArrayAdapter<String> adapter;
+    private static int RESULT_LIMIT = 10;
+    private boolean userScrolled = false;
 
     @Inject
     AppRepository repository;
@@ -52,6 +55,7 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
 
     @Override
     public void showCities(final List<City> cities) {
+        list.clear();
         for (int i = 0; i < cities.size(); i++) {
             list.add(cities.get(i).getName());
         }
@@ -65,11 +69,29 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
                 Toast.makeText(CityActivity.this, text, Toast.LENGTH_LONG).show();
             }
         });
+
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView absListView, int scrollState) {
+                if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+                    userScrolled = true;
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem,
+                                 int visibleItemCount, int totalItemCount) {
+                if (userScrolled
+                        && firstVisibleItem + visibleItemCount == totalItemCount) {
+                    userScrolled = false;
+                    presenter.loadCitiesFromNetwork(RESULT_LIMIT, adapter.getCount());
+                }
+            }
+        });
     }
 
     @Override
     public void showError(String message) {
-        Toast.makeText(this, "Error loading cities", Toast.LENGTH_SHORT).show();
         if (swipeContainer != null)
             swipeContainer.post(new Runnable() {
                 @Override
@@ -81,8 +103,6 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
 
     @Override
     public void showComplete() {
-        Toast.makeText(this, "Completed loading", Toast.LENGTH_SHORT).show();
-
         if (swipeContainer != null)
             swipeContainer.post(new Runnable() {
                 @Override
@@ -111,7 +131,7 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
 
     @Override
     public void onRefresh() {
-        presenter.loadCitiesFromNetwork();
+        presenter.loadCitiesFromNetwork(0,0);
     }
 }
 

@@ -1,7 +1,5 @@
 package com.assignment.view.City;
 
-import android.util.Log;
-
 import com.assignment.repository.AppRepository;
 import com.assignment.repository.model.City;
 import com.assignment.repository.network.AppNetworkService;
@@ -43,19 +41,17 @@ public class CityPresenter implements CityContract.Presenter {
 
     @Override
     public void loadCities() {
-        subscription = appRepository.getCities()
+        subscription = appRepository.getCities(0,0)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.newThread())
                 .subscribe(new Observer<List<City>>() {
                     @Override
                     public void onCompleted() {
-                        Log.d(TAG, "Complete");
                         view.showComplete();
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        Log.d(TAG, e.toString());
                         view.showError(e.toString());
                     }
 
@@ -67,20 +63,18 @@ public class CityPresenter implements CityContract.Presenter {
     }
 
     @Override
-    public void loadCitiesFromNetwork() {
-        new AppNetworkService().getCities().observeOn(AndroidSchedulers.mainThread())
+    public void loadCitiesFromNetwork(int limit, int offset) {
+        new AppNetworkService().getCities(limit, offset).observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.newThread())
                 .subscribe(new Observer<List<City>>() {
                     @Override
                     public void onCompleted() {
-                        Log.d(TAG, "Complete");
                         view.showComplete();
                         loadCities();
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        Log.d(TAG, e.toString());
                         view.showError(e.toString());
                     }
 
