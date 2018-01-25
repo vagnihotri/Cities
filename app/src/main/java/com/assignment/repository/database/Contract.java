@@ -31,10 +31,12 @@ public class Contract {
 
         public static final String COLUMN_ID = "id";
         public static final String COLUMN_NAME = "name";
+        public static final String COLUMN_COUNT = "count";
 
         public static String getCityCreateQuery() {
             return "CREATE TABLE " + TABLE_NAME + " (" +
                     COLUMN_ID + " LONG NOT NULL PRIMARY KEY, " +
+                    COLUMN_COUNT + " LONG NOT NULL, " +
                     COLUMN_NAME + " TEXT NOT NULL" + ");";
         }
 

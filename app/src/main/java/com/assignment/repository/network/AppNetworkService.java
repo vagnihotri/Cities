@@ -39,6 +39,9 @@ public class AppNetworkService implements AppDataStore {
                 .flatMap(new Func1<Payload, Observable<List<City>>>() {
                     @Override
                     public Observable<List<City>> call(Payload payload) {
+                        for(City city : payload.objects) {
+                            city.count = payload.meta.count;
+                        }
                         cityDao.saveCitiesToDatabase(payload.objects);
                         return cityDao.getCities(0, 0);
                     }

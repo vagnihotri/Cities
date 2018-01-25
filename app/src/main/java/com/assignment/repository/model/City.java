@@ -22,6 +22,10 @@ public class City {
     @StorIOContentResolverColumn(name = Contract.City.COLUMN_NAME, key = true)
     public String name;
 
+    @StorIOSQLiteColumn(name = Contract.City.COLUMN_COUNT, key = true)
+    @StorIOContentResolverColumn(name = Contract.City.COLUMN_COUNT, key = true)
+    public Integer count;
+
     public City() {
 
     }

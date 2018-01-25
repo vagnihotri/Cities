@@ -31,9 +31,11 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
     private CityAdapter cityAdapter;
     private ArrayList<String> list;
     private LinearLayoutManager layoutManager;
-    private static int RESULT_LIMIT = 10;
+    private static final int RESULT_LIMIT = 10;
     private DividerItemDecoration divider;
     private ProgressDialog progressDialog;
+    private int totalCount;
+    private boolean isLoading;
 
     @Inject
     AppRepository repository;
@@ -42,7 +44,6 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_activity_city);
-        //Inject dependency
         MainApplication.getAppComponent().inject(this);
 
         recyclerView = findViewById(R.id.recycler_cities);
@@ -54,10 +55,12 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
 
         new CityPresenter(repository, this,
                 Schedulers.newThread(), AndroidSchedulers.mainThread());
+        showLoading();
     }
 
     @Override
     public void showCities(final List<City> cities) {
+        totalCount = cities.get(0).count;
         stopLoading();
         list.clear();
         for (int i = 0; i < cities.size(); i++) {
@@ -76,16 +79,19 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
                 int visibleItemCount = layoutManager.getChildCount();
                 int firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
 
-                if (dy > 0 && (visibleItemCount + firstVisibleItem) >= totalItemCount)
+                if (!isLoading && dy >= 0 && (visibleItemCount + firstVisibleItem) >= totalItemCount)
                 {
-                    showLoading();
-                    presenter.loadCitiesFromNetwork(RESULT_LIMIT, cityAdapter.getItemCount());
+                    if(cityAdapter.getItemCount() < totalCount) {
+                        showLoading();
+                        presenter.loadCitiesFromNetwork(RESULT_LIMIT, cityAdapter.getItemCount());
+                    }
                 }
             }
         });
     }
 
     private void showLoading() {
+        isLoading = true;
         if(progressDialog == null) {
             progressDialog = new ProgressDialog(this);
             progressDialog.setMessage("Loading");
@@ -94,6 +100,7 @@ public class CityActivity extends AppCompatActivity implements CityContract.View
     }
 
     private void stopLoading() {
+        isLoading = false;
         if(progressDialog != null) {
             progressDialog.dismiss();
         }
